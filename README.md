@@ -271,11 +271,12 @@ a complete database reset is intentionally required.
   own project folder with `docker compose down`.
 - Empty dashboard: rerun the `seed` and `demo-run` commands from step 3.
 
-### Optional non-Docker prerequisite check
+### Optional host-language checks
 
-Only use the manual setup below if all commands meet these minimum versions:
+These tools are not required for the Docker setup. Developers who deliberately
+run services without Docker can check Linux/macOS hosts with:
 
-```text
+```bash
 python3 --version    # 3.12 or newer
 node --version       # 22 or newer
 npm --version
@@ -283,62 +284,36 @@ psql --version       # PostgreSQL 16 or newer
 make --version
 ```
 
-If any command is missing, use the Docker quick start instead of mixing manual
-and container-based setup.
+On Windows PowerShell, use:
 
-## Prerequisites
-
-- Python 3.12 or newer;
-- Node.js 22 or newer;
-- PostgreSQL 16 or newer, or Docker Compose.
-
-## Local setup
-
-From the project root:
-
-```bash
-cp .env.example .env
-make install
+```powershell
+py -3.12 --version
+node --version
+npm --version
+psql --version
+make --version
 ```
 
-Set `DATABASE_URL` in `.env` to your PostgreSQL database, then run:
+The non-Docker workflow is an advanced developer option, not the supported
+beginner installation path. Missing host-language commands do not matter when
+Docker is working.
 
-```bash
-set -a
-. ./.env
-set +a
-make migrate
-make seed
-```
+## Supported local setup
 
-Start the backend from the project root:
+Docker Compose is the supported local setup on Linux, Windows, and macOS. Use
+the operating-system instructions in the quick start above. Do not mix those
+commands with the optional host-installed Python/Node workflow.
 
-```bash
-.venv/bin/uvicorn --app-dir backend app.main:app --reload --port 8000
-```
-
-In a second terminal, start React:
-
-```bash
-npm --prefix frontend run dev
-```
-
-Open:
-
-- React: `http://localhost:5173`
-- API docs: `http://localhost:8000/docs`
-- Liveness: `http://localhost:8000/health`
-- Database readiness: `http://localhost:8000/ready`
+After `docker compose up -d --build`, all commands below run inside containers
+and are identical on Linux/macOS terminals and Windows PowerShell unless a
+platform difference is explicitly shown.
 
 ## Run the Phase 3 fixture pipeline
 
-With the database migrated:
+With the Docker application running:
 
-```bash
-set -a
-. ./.env
-set +a
-make demo
+```text
+docker compose exec backend python -m app.cli demo-run
 ```
 
 This creates one `SYNTHETIC` run for the current Asia/Kolkata date. It plans 15
@@ -350,8 +325,8 @@ duplicating data.
 
 After a completed or partial collection run, calculate its persisted index:
 
-```bash
-make apix RUN_ID=replace-with-collection-run-uuid
+```text
+docker compose exec backend python -m app.cli apix-run --run-id replace-with-collection-run-uuid
 ```
 
 The command creates the 15-item versioned basket when needed, stores each
@@ -360,11 +335,11 @@ seven eligible dates, and stores the exact component calculation. Before the
 base is ready, the result is intentionally `PROVISIONAL_BASE` with no published
 index value. Repeating the command for the same run is idempotent.
 
-The protected API equivalent is:
+The protected API equivalent is below. In Windows PowerShell, use `curl.exe`
+instead of `curl` for these API examples:
 
-```bash
-curl -X POST http://localhost:8000/api/v1/admin/collection-runs/fixture \
-  -H 'X-Admin-Token: change-me-before-use'
+```text
+curl -X POST http://localhost:8000/api/v1/admin/collection-runs/fixture -H "X-Admin-Token: change-me-before-use"
 ```
 
 Never use the example token outside local development.
@@ -372,9 +347,8 @@ Never use the example token outside local development.
 Phase 13 period aggregates refresh automatically whenever a daily index is
 calculated. To backfill weekly and monthly rows for existing daily indices:
 
-```bash
-curl -X POST 'http://localhost:8000/api/v1/admin/index/aggregate?data_class=SYNTHETIC' \
-  -H 'X-Admin-Token: change-me-before-use'
+```text
+curl -X POST "http://localhost:8000/api/v1/admin/index/aggregate?data_class=SYNTHETIC" -H "X-Admin-Token: change-me-before-use"
 ```
 
 Read the evidence at `/api/v1/index/current/coverage`,
@@ -386,23 +360,19 @@ The bundled reference file contains four air-fare item-index values transcribed
 from Annexure V of MoSPI's October 2025 CPI release. Import it into the separate
 historical tables:
 
-```bash
-set -a
-. ./.env
-set +a
-make historical \
-  CSV=data/reference/mospi-airfare-cpi-sample.csv \
-  CODE=MOSPI-AIRFARE-CPI-2012-2025-10-SAMPLE \
-  TITLE="MoSPI All India CPI air fare item sample" \
-  PUBLISHER="Ministry of Statistics and Programme Implementation" \
-  SOURCE_URL="https://cpi.mospi.gov.in/PDFile/Press/PR%20October%202025.pdf" \
-  LICENSE="Government Open Data License - India" \
-  METRIC="Air fare economy class adult All India Combined CPI"
+```text
+docker compose exec backend python /workspace/scripts/import_historical.py /workspace/data/reference/mospi-airfare-cpi-sample.csv --code MOSPI-AIRFARE-CPI-2012-2025-10-SAMPLE --title "MoSPI All India CPI air fare item sample" --publisher "Ministry of Statistics and Programme Implementation" --source-url "https://cpi.mospi.gov.in/PDFile/Press/PR%20October%202025.pdf" --license "Government Open Data License - India" --metric "Air fare economy class adult All India Combined CPI"
 ```
 
-On a clean demonstration database, `make backtest` creates exactly 30 days of
-labelled synthetic collection/index evidence and prints the overlap and
-correlation status. It never converts that evidence into `LIVE` data.
+On a clean demonstration database, this creates exactly 30 days of labelled
+synthetic collection/index evidence and prints the overlap and correlation
+status:
+
+```text
+docker compose exec backend python /workspace/scripts/run_30_day_backtest.py --reference-csv /workspace/data/reference/mospi-airfare-cpi-sample.csv
+```
+
+It never converts that evidence into `LIVE` data.
 
 Read the report at:
 
@@ -435,7 +405,10 @@ agreement before enabling it.
 
 Create a backend-only token in your Duffel account and place it in `.env`:
 
-```bash
+Open the file with `nano .env` on Linux/macOS or `notepad .env` in Windows
+PowerShell, then set:
+
+```text
 DUFFEL_ACCESS_TOKEN=replace-with-your-backend-only-token
 DUFFEL_SOURCE_APPROVED=true
 DUFFEL_SOURCE_ENABLED=true
@@ -443,19 +416,17 @@ DUFFEL_SOURCE_ENABLED=true
 
 For a Duffel test token, keep:
 
-```bash
+```text
 DUFFEL_LIVE_MODE=false
 ```
 
 The resulting rows are stored as `RECORDED_DEMO`, because Duffel says its test
 mode does not provide realistic schedules or prices. Never present them as
-live. Run the configured test-mode source with:
+live. Recreate the backend so it reads the edited `.env`, then run the source:
 
-```bash
-set -a
-. ./.env
-set +a
-make duffel
+```text
+docker compose up -d --force-recreate backend
+docker compose exec backend python -m app.cli duffel-run
 ```
 
 For an activated production account and live token only, set
@@ -464,14 +435,13 @@ declare `live_mode=true`; a mismatch fails closed.
 
 The protected API equivalent is:
 
-```bash
-curl -X POST http://localhost:8000/api/v1/admin/collection-runs/duffel \
-  -H 'X-Admin-Token: replace-with-your-admin-token'
+```text
+curl -X POST http://localhost:8000/api/v1/admin/collection-runs/duffel -H "X-Admin-Token: replace-with-your-admin-token"
 ```
 
 To schedule Duffel instead of the fixture after it is configured:
 
-```bash
+```text
 SCHEDULER_ENABLED=true
 SCHEDULED_SOURCE=duffel
 ```
@@ -485,7 +455,7 @@ permission, copy
 `backend/config/source-profiles/permissioned-web.example.json`, and replace its
 URL/selectors with the approved source contract. Then configure:
 
-```bash
+```text
 WEB_SOURCE_PROFILE_PATH=config/source-profiles/your-approved-source.json
 WEB_SOURCE_ENABLED=true
 WEB_SOURCE_APPROVED=true
@@ -493,11 +463,12 @@ WEB_SOURCE_PERMISSION_REFERENCE=your-saved-letter-or-contract-reference
 SCHEDULED_SOURCE=permissioned_web
 ```
 
-Install Chromium once for a non-Docker setup and run the source:
+Chromium is installed automatically in the backend image. After editing
+`.env`, recreate the backend and run the source:
 
-```bash
-.venv/bin/playwright install chromium
-make web
+```text
+docker compose up -d --force-recreate backend
+docker compose exec backend python -m app.cli web-run
 ```
 
 Docker installs Chromium during the backend image build. If permission or a
@@ -511,46 +482,31 @@ structured terminal failures, and per-day idempotency.
 
 ## Verification
 
-```bash
-make lint
-make typecheck
-make test
-make build
+```text
+docker compose exec backend ruff check app tests alembic/versions
+docker compose exec backend mypy app
+docker compose exec backend pytest -q
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run typecheck
+docker compose exec frontend npm run test
+docker compose exec frontend npm run build
 ```
 
 To verify migrations against a disposable SQLite database without affecting
 your configured database:
 
-```bash
-DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db \
-  .venv/bin/alembic -c backend/alembic.ini upgrade head
-DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db \
-  .venv/bin/alembic -c backend/alembic.ini downgrade base
-DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db \
-  .venv/bin/alembic -c backend/alembic.ini upgrade head
+```text
+docker compose exec -e DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db backend alembic upgrade head
+docker compose exec -e DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db backend alembic downgrade base
+docker compose exec -e DATABASE_URL=sqlite+pysqlite:////tmp/airfare-apix-migration-check.db backend alembic upgrade head
 ```
 
-## Docker Compose
+## Docker Compose details
 
-```bash
-cp .env.example .env
-# Replace the placeholder POSTGRES_PASSWORD and ADMIN_TOKEN in .env.
-docker compose up -d --build
-```
-
-After the PostgreSQL health check passes, the backend migrates the database and
-starts. React is available on port 5173.
-
-Check all services and open the application:
-
-```bash
-docker compose ps
-curl http://localhost:8000/ready
-```
-
-- Application: `http://localhost:5173`
-- API documentation: `http://localhost:8000/docs`
-- Source health: `http://localhost:8000/api/v1/sources/health`
+The first build downloads PostgreSQL, installs the backend Python dependencies
+and Chromium, installs the frontend npm dependencies, runs database migrations,
+and starts React and FastAPI. Later starts reuse Docker's cached images and
+named volumes.
 
 The local PostgreSQL instance is free and needs no Azure account or paid
 subscription. Its data is kept in the named `postgres_data` Docker volume.
@@ -558,36 +514,32 @@ subscription. Its data is kept in the named `postgres_data` Docker volume.
 For the PostgreSQL integration test, create and migrate a separate test
 database once:
 
-```bash
-set -a
-. ./.env
-set +a
+```text
 docker compose exec postgres sh -c 'createdb -U "$POSTGRES_USER" airfare_apix_test'
-DATABASE_URL="postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_HOST_PORT:-5432}/airfare_apix_test" \
-  .venv/bin/alembic -c backend/alembic.ini upgrade head
-TEST_DATABASE_URL="postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_HOST_PORT:-5432}/airfare_apix_test" \
-  .venv/bin/pytest -q backend/tests/test_postgresql_integration.py
+docker compose exec backend sh -lc 'DATABASE_URL="${DATABASE_URL%/*}/airfare_apix_test" alembic upgrade head'
+docker compose exec backend sh -lc 'TEST_DATABASE_URL="${DATABASE_URL%/*}/airfare_apix_test" pytest -q tests/test_postgresql_integration.py'
 ```
 
 If that database already exists, skip only the `createdb` line.
 
 Shutdown without deleting PostgreSQL data:
 
-```bash
+```text
 docker compose down
 ```
 
 Delete the development database volume only when you explicitly want a clean
 database:
 
-```bash
+```text
 docker compose down --volumes
 ```
 
 ## Troubleshooting
 
-- **`/ready` says unavailable:** check `DATABASE_URL`, confirm PostgreSQL is
-  running, then run `make migrate`.
+- **`/ready` says unavailable:** run `docker compose ps` and
+  `docker compose logs backend postgres`; migrations run automatically whenever
+  the backend starts.
 - **React reports backend unavailable:** confirm FastAPI is on port 8000 and
   `VITE_API_BASE_URL=http://localhost:8000`.
 - **A migration fails on an old local database:** do not delete data blindly;
@@ -595,8 +547,8 @@ docker compose down --volumes
 - **The fixture command returns an existing run:** this is the intended
   idempotency protection. Use a different methodological date in the CLI only
   when you deliberately need another synthetic run.
-- **Docker is unavailable:** use the local setup with a separately installed
-  PostgreSQL server.
+- **Docker is unavailable:** install and start Docker using the matching
+  Linux, Windows, or macOS quick-start section above.
 - **Docker says permission denied:** sign out and back in once after adding
   your account to the `docker` group, then retry `docker compose ps`.
 
