@@ -42,6 +42,111 @@ Genuine credentialed source collection is not claimed here. APIx and the
 dashboard are currently verified with synthetic/fixture data; a
 genuine `LIVE` series still depends on the Phase 4 credential/permission gate.
 
+## Windows: complete setup from a fresh computer
+
+This is the complete Windows path for someone who has not installed Git,
+Docker, WSL, Python, Node.js, npm, PostgreSQL, React, or Playwright.
+
+### A. Install the two host requirements
+
+Open **PowerShell as Administrator** and run each command separately:
+
+```powershell
+winget install --exact --id Git.Git
+winget install --exact --id Docker.DockerDesktop
+wsl --install
+wsl --update
+```
+
+Restart Windows if requested. Open Docker Desktop from the Start menu, use its
+Linux-containers/WSL 2 engine, and wait until Docker reports that it is running.
+
+Open a new ordinary PowerShell window and check every host requirement:
+
+```powershell
+git --version
+wsl --version
+docker --version
+docker compose version
+docker info
+```
+
+Do not continue until all five commands succeed. Docker Desktop includes Docker
+Compose, so Compose is not installed separately.
+
+If `docker info` reports `failed to connect to the docker API at
+npipe:////./pipe/docker_engine`, Docker Desktop is installed but its engine is
+not running. Start Docker Desktop, wait for it to finish, and retry. If needed,
+run `wsl --shutdown`, then reopen Docker Desktop.
+
+### B. Download the repository
+
+Using Git:
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\Projects" | Out-Null
+Set-Location "$HOME\Projects"
+git clone https://github.com/nayan456123/airfare-apix-sih26056.git
+Set-Location "$HOME\Projects\airfare-apix-sih26056"
+Test-Path .\docker-compose.yml
+```
+
+If Git is not wanted, download the GitHub ZIP and use:
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\Projects" | Out-Null
+Expand-Archive "$HOME\Downloads\airfare-apix-sih26056-main.zip" -DestinationPath "$HOME\Projects" -Force
+Set-Location "$HOME\Projects\airfare-apix-sih26056-main"
+Test-Path .\docker-compose.yml
+```
+
+`Test-Path` must print `True`. That is the project root. Every remaining command
+must be run from this same folder.
+
+### C. Install every application dependency and start everything
+
+```powershell
+Copy-Item .env.example .env
+docker compose pull postgres
+docker compose --progress=plain build
+docker compose up -d
+docker compose ps
+```
+
+Those commands install the application dependencies inside Docker:
+
+- the frontend image installs Node.js 22, React, Vite, GSAP, and every npm
+  package from `frontend/package-lock.json`;
+- the backend image installs Python 3.12, FastAPI, SQLAlchemy, Alembic,
+  Playwright, Chromium, and every Python package from `backend/pyproject.toml`;
+- Docker downloads PostgreSQL 17, creates its persistent database volume and
+  private application network;
+- backend startup runs all Alembic database migrations automatically;
+- Docker starts PostgreSQL, FastAPI, and the React development server in the
+  required order.
+
+Python, Node.js, npm, `psql`, PostgreSQL, React, Playwright, and GNU Make do not
+need to be installed directly on Windows for this Docker workflow.
+
+### D. Add demonstration data
+
+```powershell
+docker compose exec backend python -m app.cli seed
+docker compose exec backend python -m app.cli demo-run
+```
+
+Then open `http://localhost:5173`. API documentation is available at
+`http://localhost:8000/docs`.
+
+### E. Stop or restart later
+
+```powershell
+docker compose down
+docker compose up -d
+```
+
+The first command stops the application without deleting PostgreSQL data.
+
 ## Documentation map
 
 - [`PRODUCT.md`](PRODUCT.md) — audience, product truth, constraints, and success
