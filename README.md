@@ -67,6 +67,122 @@ genuine `LIVE` series still depends on the Phase 4 credential/permission gate.
 - [`docs/master-phase-status.md`](docs/master-phase-status.md) — canonical status
   for Phases 0–16.
 
+## Supported system
+
+These setup instructions support **Linux only**. The recommended environment is
+Ubuntu 22.04/24.04 or another Debian-based Linux distribution with Docker
+Compose v2. Run every project command from the repository root—the folder that
+contains `docker-compose.yml`, `README.md`, `backend`, and `frontend`.
+
+Windows and macOS commands are not provided or tested for this prototype.
+
+## Linux quick start with Docker
+
+### 1. Install the required tools
+
+On Ubuntu or Debian-based Linux:
+
+```bash
+sudo apt update
+sudo apt install -y git curl docker.io docker-compose-v2
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+newgrp docker
+```
+
+Confirm that Docker is available:
+
+```bash
+docker --version
+docker compose version
+```
+
+### 2. Download the project and enter the correct folder
+
+For a Git clone:
+
+```bash
+mkdir -p ~/Projects
+cd ~/Projects
+git clone https://github.com/nayan456123/airfare-apix-sih26056.git
+cd ~/Projects/airfare-apix-sih26056
+```
+
+If the GitHub ZIP was downloaded instead:
+
+```bash
+mkdir -p ~/Projects
+cd ~/Projects
+unzip ~/Downloads/airfare-apix-sih26056-main.zip
+cd ~/Projects/airfare-apix-sih26056-main
+```
+
+Confirm that the terminal is inside the correct folder before continuing:
+
+```bash
+pwd
+test -f docker-compose.yml && echo "Correct project folder"
+```
+
+Do not run the following commands from `backend`, `frontend`, `Downloads`, or
+the parent `Projects` folder.
+
+### 3. Create the local configuration and start the application
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+The placeholder password and admin token in `.env.example` are sufficient for
+this localhost-only demonstration. Replace them before hosting the application
+or making it accessible to another computer.
+
+Wait until all three containers report as running or healthy:
+
+```bash
+docker compose ps
+```
+
+Load the reference routes and one deterministic synthetic demonstration run:
+
+```bash
+docker compose exec backend python -m app.cli seed
+docker compose exec backend python -m app.cli demo-run
+```
+
+Open the application:
+
+- Dashboard: `http://localhost:5173`
+- API documentation: `http://localhost:8000/docs`
+- Backend readiness: `http://localhost:8000/ready`
+
+### 4. Stop or restart the application
+
+Run these commands from the same project root:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+`docker compose down` preserves the PostgreSQL data. Do not add `--volumes`
+unless a complete database reset is intentionally required.
+
+### Linux quick-start troubleshooting
+
+- `no configuration file provided`: the terminal is not in the repository
+  root; run `cd ~/Projects/airfare-apix-sih26056` for a Git clone or
+  `cd ~/Projects/airfare-apix-sih26056-main` for a ZIP extraction.
+- `permission denied` while using Docker: run
+  `sudo usermod -aG docker "$USER"`, sign out of Linux, sign back in, and retry.
+- `docker: 'compose' is not a docker command`: install the Compose v2 package
+  with `sudo apt install docker-compose-v2`.
+- Port `5173`, `8000`, or `5432` is already in use: stop the older copy with
+  `docker compose down` from its project folder before starting this one.
+- The dashboard opens but contains no observations: rerun the two `docker
+  compose exec backend` seed and demo commands above.
+
 ## Prerequisites
 
 - Python 3.12 or newer;
