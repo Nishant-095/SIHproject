@@ -67,20 +67,19 @@ genuine `LIVE` series still depends on the Phase 4 credential/permission gate.
 - [`docs/master-phase-status.md`](docs/master-phase-status.md) — canonical status
   for Phases 0–16.
 
-## Supported system
+## Quick start: Linux, Windows, and macOS
 
-These setup instructions support **Linux only**. The recommended environment is
-Ubuntu 22.04/24.04 or another Debian-based Linux distribution with Docker
-Compose v2. Run every project command from the repository root—the folder that
-contains `docker-compose.yml`, `README.md`, `backend`, and `frontend`.
+The recommended setup uses Docker on all three operating systems. With Docker,
+Python, Node.js, npm, PostgreSQL, and Playwright run inside containers and do
+**not** need to be installed separately. The computer only needs Git, Docker,
+and Docker Compose v2.
 
-Windows and macOS commands are not provided or tested for this prototype.
+All project commands must be run from the repository root: the folder containing
+`docker-compose.yml`, `README.md`, `backend`, and `frontend`.
 
-## Linux quick start with Docker
+### 1. Install and check the required software
 
-### 1. Install the required tools
-
-On Ubuntu or Debian-based Linux:
+#### Linux (Ubuntu/Debian)
 
 ```bash
 sudo apt update
@@ -88,70 +87,154 @@ sudo apt install -y git curl docker.io docker-compose-v2
 sudo systemctl enable --now docker
 sudo usermod -aG docker "$USER"
 newgrp docker
+
+git --version
+docker --version
+docker compose version
+docker info
 ```
 
-Confirm that Docker is available:
+If `docker-compose-v2` is unavailable in the distribution repository, follow
+Docker's official [Linux Compose installation guide](https://docs.docker.com/compose/install/linux/).
+
+#### Windows 10/11 (PowerShell)
+
+Open PowerShell and check what is already installed:
+
+```powershell
+git --version
+docker --version
+docker compose version
+wsl --version
+```
+
+Install missing tools with Windows Package Manager:
+
+```powershell
+winget install --id Git.Git -e
+winget install --id Docker.DockerDesktop -e
+```
+
+If `wsl --version` fails, open PowerShell as Administrator and run:
+
+```powershell
+wsl --install
+wsl --update
+```
+
+Restart Windows if requested, launch Docker Desktop, keep it in **Linux
+containers** mode, wait for Docker to report that it is running, and open a new
+PowerShell window. Docker's current requirements are listed in the official
+[Windows installation guide](https://docs.docker.com/desktop/setup/install/windows-install/).
+
+#### macOS (Terminal)
+
+Check what is already installed:
 
 ```bash
+git --version
 docker --version
+docker compose version
+```
+
+If Git is missing, install Apple's command-line tools:
+
+```bash
+xcode-select --install
+```
+
+If Homebrew is available, install and start Docker Desktop with:
+
+```bash
+brew install --cask docker
+open -a Docker
+```
+
+Otherwise install the correct Apple-silicon or Intel package from Docker's
+official [macOS installation guide](https://docs.docker.com/desktop/setup/install/mac-install/).
+Wait for Docker Desktop to finish starting, then verify it:
+
+```bash
+docker info
 docker compose version
 ```
 
 ### 2. Download the project and enter the correct folder
 
-For a Git clone:
+#### Linux or macOS: Git clone
 
 ```bash
 mkdir -p ~/Projects
 cd ~/Projects
 git clone https://github.com/nayan456123/airfare-apix-sih26056.git
 cd ~/Projects/airfare-apix-sih26056
+pwd
+test -f docker-compose.yml && echo "Correct project folder"
 ```
 
-If the GitHub ZIP was downloaded instead:
+#### Linux or macOS: downloaded GitHub ZIP
 
 ```bash
 mkdir -p ~/Projects
 cd ~/Projects
 unzip ~/Downloads/airfare-apix-sih26056-main.zip
 cd ~/Projects/airfare-apix-sih26056-main
-```
-
-Confirm that the terminal is inside the correct folder before continuing:
-
-```bash
 pwd
 test -f docker-compose.yml && echo "Correct project folder"
 ```
 
-Do not run the following commands from `backend`, `frontend`, `Downloads`, or
-the parent `Projects` folder.
+#### Windows PowerShell: Git clone
 
-### 3. Create the local configuration and start the application
+```powershell
+New-Item -ItemType Directory -Force "$HOME\Projects" | Out-Null
+Set-Location "$HOME\Projects"
+git clone https://github.com/nayan456123/airfare-apix-sih26056.git
+Set-Location "$HOME\Projects\airfare-apix-sih26056"
+Get-Location
+Test-Path .\docker-compose.yml
+```
+
+#### Windows PowerShell: downloaded GitHub ZIP
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\Projects" | Out-Null
+Expand-Archive "$HOME\Downloads\airfare-apix-sih26056-main.zip" -DestinationPath "$HOME\Projects" -Force
+Set-Location "$HOME\Projects\airfare-apix-sih26056-main"
+Get-Location
+Test-Path .\docker-compose.yml
+```
+
+The final check must print `Correct project folder` on Linux/macOS or `True` on
+Windows. Do not continue from `backend`, `frontend`, `Downloads`, or the parent
+`Projects` folder.
+
+### 3. Start the application
+
+Linux or macOS:
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
-```
-
-The placeholder password and admin token in `.env.example` are sufficient for
-this localhost-only demonstration. Replace them before hosting the application
-or making it accessible to another computer.
-
-Wait until all three containers report as running or healthy:
-
-```bash
 docker compose ps
-```
-
-Load the reference routes and one deterministic synthetic demonstration run:
-
-```bash
 docker compose exec backend python -m app.cli seed
 docker compose exec backend python -m app.cli demo-run
 ```
 
-Open the application:
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up -d --build
+docker compose ps
+docker compose exec backend python -m app.cli seed
+docker compose exec backend python -m app.cli demo-run
+```
+
+The placeholder password and admin token are sufficient for this
+localhost-only demonstration. Replace them before hosting the application or
+making it accessible to another computer.
+
+Open:
 
 - Dashboard: `http://localhost:5173`
 - API documentation: `http://localhost:8000/docs`
@@ -159,29 +242,49 @@ Open the application:
 
 ### 4. Stop or restart the application
 
-Run these commands from the same project root:
+The commands are identical in Linux/macOS terminals and Windows PowerShell:
 
-```bash
+```text
 docker compose down
 docker compose up -d
 ```
 
-`docker compose down` preserves the PostgreSQL data. Do not add `--volumes`
-unless a complete database reset is intentionally required.
+`docker compose down` preserves PostgreSQL data. Do not add `--volumes` unless
+a complete database reset is intentionally required.
 
-### Linux quick-start troubleshooting
+### Quick-start troubleshooting
 
 - `no configuration file provided`: the terminal is not in the repository
-  root; run `cd ~/Projects/airfare-apix-sih26056` for a Git clone or
-  `cd ~/Projects/airfare-apix-sih26056-main` for a ZIP extraction.
-- `permission denied` while using Docker: run
-  `sudo usermod -aG docker "$USER"`, sign out of Linux, sign back in, and retry.
-- `docker: 'compose' is not a docker command`: install the Compose v2 package
-  with `sudo apt install docker-compose-v2`.
-- Port `5173`, `8000`, or `5432` is already in use: stop the older copy with
-  `docker compose down` from its project folder before starting this one.
-- The dashboard opens but contains no observations: rerun the two `docker
-  compose exec backend` seed and demo commands above.
+  root. Return to the exact project folder shown in step 2.
+- `git` is not recognized or `command not found`: install Git using the matching
+  operating-system instructions above, then open a new terminal.
+- `docker` is not recognized or `command not found`: install and start Docker
+  Desktop on Windows/macOS, or Docker Engine on Linux.
+- `Cannot connect to the Docker daemon`: Docker Desktop/Engine is installed but
+  not running yet.
+- `docker: 'compose' is not a docker command`: Docker Compose v2 is missing.
+- Linux Docker `permission denied`: add the user to the `docker` group, then
+  sign out and back in.
+- Windows bind-mount errors: confirm Docker Desktop is using Linux containers
+  and that the project is under the current user's `Projects` folder.
+- Port `5173`, `8000`, or `5432` is already in use: stop the older copy from its
+  own project folder with `docker compose down`.
+- Empty dashboard: rerun the `seed` and `demo-run` commands from step 3.
+
+### Optional non-Docker prerequisite check
+
+Only use the manual setup below if all commands meet these minimum versions:
+
+```text
+python3 --version    # 3.12 or newer
+node --version       # 22 or newer
+npm --version
+psql --version       # PostgreSQL 16 or newer
+make --version
+```
+
+If any command is missing, use the Docker quick start instead of mixing manual
+and container-based setup.
 
 ## Prerequisites
 
