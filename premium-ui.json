@@ -1,0 +1,20 @@
+{
+  "profile": "product-dashboard",
+  "sourceRoots": ["frontend/src"],
+  "locale": "en-IN",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Select/Listbox", "Scrollbar", "Data state", "Navigation"],
+  "ownership": {
+    "Select/Listbox": "native"
+  },
+  "requiredCommands": ["unit", "accessibility", "premium"],
+  "commands": {
+    "unit": "npm run test",
+    "accessibility": "npm run lint && npm run typecheck",
+    "premium": "python3 /home/nayan/.codex/plugins/cache/openai-curated-remote/frontend-design-premium/1.4.0/skills/frontend-design-premium/scripts/audit_project.py .. --mode strict"
+  },
+  "evidence": {
+    "failurePaths": "frontend/src/App.test.tsx",
+    "responsiveScreenshots": "docs/screenshots"
+  }
+}

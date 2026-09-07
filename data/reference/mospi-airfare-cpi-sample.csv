@@ -1,0 +1,5 @@
+period_start,period_end,scope_type,origin_iata,destination_iata,index_value,coverage_percent,status,source_record_id,raw_record_json
+2024-09-01,2024-09-30,NATIONAL,,,196.5,,FINAL,MoSPI-CPI-2025-10-AnnexureV-Sep2024,"{""published_table"":""Annexure V"",""series"":""All India Combined""}"
+2024-10-01,2024-10-31,NATIONAL,,,195.4,,FINAL,MoSPI-CPI-2025-10-AnnexureV-Oct2024,"{""published_table"":""Annexure V"",""series"":""All India Combined""}"
+2025-09-01,2025-09-30,NATIONAL,,,205.1,,FINAL,MoSPI-CPI-2025-10-AnnexureV-Sep2025,"{""published_table"":""Annexure V"",""series"":""All India Combined""}"
+2025-10-01,2025-10-31,NATIONAL,,,211.5,,PROVISIONAL,MoSPI-CPI-2025-10-AnnexureV-Oct2025,"{""published_table"":""Annexure V"",""series"":""All India Combined""}"

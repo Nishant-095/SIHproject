@@ -1,0 +1,49 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Local databases and raw runtime evidence
+*.db
+*.sqlite
+*.sqlite3
+data/raw/
+
+# JavaScript
+node_modules/
+frontend/dist/
+frontend/coverage/
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Tooling and operating systems
+.DS_Store
+.idea/
+.vscode/
+premium-audit.json
+
+# Local generation and review workspaces
+.codex-finalizer/
+.ppt-build/
+tmp/
+work/
+
+# Local CI workflow (current GitHub token lacks workflow scope)
+.github/workflows/
+
+# Keep only the final submission deck artifacts
+outputs/*
+!outputs/Airfare_APIx_SIH26056_Official_6_Slide_v7.pptx
+!outputs/Airfare_APIx_SIH26056_Official_6_Slide_Submission_v7.pdf

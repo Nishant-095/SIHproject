@@ -1,0 +1,32 @@
+{
+  "profile_version": "replace-with-provider-v1",
+  "source_code": "PERMISSIONED_WEB",
+  "source_name": "Replace with permissioned airline or OTA",
+  "source_type": "AIRLINE_DIRECT",
+  "base_url": "https://portal.example.com",
+  "robots_url": "https://portal.example.com/robots.txt",
+  "search_url_template": "https://portal.example.com/search?origin={origin}&destination={destination}&date={travel_date}&adults={passenger_count}&cabin={cabin}&currency={currency}",
+  "quote_selector": "[data-airfare-quote]",
+  "no_results_selector": "[data-no-flight-results]",
+  "max_quotes": 50,
+  "fields": {
+    "airline_name": {"attribute": "data-airline-name"},
+    "carrier_code": {"attribute": "data-carrier-code"},
+    "flight_number": {"attribute": "data-flight-number"},
+    "origin": {"attribute": "data-origin"},
+    "destination": {"attribute": "data-destination"},
+    "departure_time": {"selector": ".departure-time"},
+    "arrival_time": {"selector": ".arrival-time"},
+    "currency": {"attribute": "data-currency"},
+    "base_fare": {"selector": ".base-fare"},
+    "taxes": {"selector": ".taxes"},
+    "udf": {"selector": ".udf"},
+    "convenience_fee": {"selector": ".convenience-fee"},
+    "other_fees": {"selector": ".other-fees"},
+    "total_fare": {"selector": ".total-fare"},
+    "fare_class": {"attribute": "data-fare-class"},
+    "cabin_class": {"attribute": "data-cabin-class"},
+    "is_nonstop": {"attribute": "data-is-nonstop"},
+    "availability": {"attribute": "data-availability"}
+  }
+}

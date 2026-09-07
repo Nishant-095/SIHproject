@@ -1,0 +1,48 @@
+{
+  "data": {
+    "id": "orq_sanitized_normal",
+    "live_mode": false,
+    "offers": [
+      {
+        "id": "off_sanitized_direct",
+        "live_mode": false,
+        "total_amount": "5250.00",
+        "total_currency": "INR",
+        "base_amount": "4400.00",
+        "base_currency": "INR",
+        "tax_amount": "850.00",
+        "tax_currency": "INR",
+        "expires_at": "2026-09-05T06:00:00Z",
+        "slices": [
+          {
+            "segments": [
+              {
+                "origin": {"iata_code": "DEL"},
+                "destination": {"iata_code": "BOM"},
+                "departing_at": "2026-09-12T09:20:00",
+                "arriving_at": "2026-09-12T11:30:00",
+                "marketing_carrier": {"iata_code": "AI", "name": "Air India"},
+                "operating_carrier": {"iata_code": "AI", "name": "Air India"},
+                "marketing_carrier_flight_number": "2421"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "off_sanitized_connecting",
+        "live_mode": false,
+        "total_amount": "4900.00",
+        "total_currency": "INR",
+        "slices": [
+          {
+            "segments": [
+              {"id": "seg_one"},
+              {"id": "seg_two"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head><title>Dynamic permissioned portal</title></head>
+  <body>
+    <main id="results"></main>
+    <script>
+      const values = {
+        origin: "__ORIGIN__",
+        destination: "__DESTINATION__",
+        travelDate: "__TRAVEL_DATE__"
+      };
+      setTimeout(() => {
+        document.querySelector("#results").innerHTML = `
+          <article data-airfare-quote data-airline-name="Air India"
+            data-carrier-code="AI" data-flight-number="AI 2421"
+            data-origin="${values.origin}" data-destination="${values.destination}"
+            data-currency="INR" data-fare-class="PUBLIC_ECONOMY"
+            data-cabin-class="ECONOMY" data-is-nonstop="true"
+            data-availability="AVAILABLE">
+            <span class="departure-time">${values.travelDate}T09:20:00+05:30</span>
+            <span class="arrival-time">${values.travelDate}T11:35:00+05:30</span>
+            <span class="base-fare">4500.00</span>
+            <span class="taxes">500.00</span>
+            <span class="udf">150.00</span>
+            <span class="convenience-fee">100.00</span>
+            <span class="other-fees">0.00</span>
+            <span class="total-fare">5250.00</span>
+          </article>`;
+      }, 75);
+    </script>
+  </body>
+</html>

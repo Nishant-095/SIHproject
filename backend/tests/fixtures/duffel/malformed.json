@@ -1,0 +1,14 @@
+{
+  "data": {
+    "id": "orq_sanitized_malformed",
+    "live_mode": false,
+    "offers": [
+      {
+        "id": "off_sanitized_malformed",
+        "total_amount": "not-a-number",
+        "total_currency": "INR",
+        "slices": [{"segments": []}]
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "profile": "product-dashboard",
+  "sourceRoots": ["src"],
+  "locale": "en-IN",
+  "ownership": {
+    "Select/Listbox": "native"
+  }
+}

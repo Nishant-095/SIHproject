@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "airfare-apix-backend"
+version = "0.1.0"
+description = "Auditable airfare collection and prototype index backend"
+requires-python = ">=3.12"
+dependencies = [
+  "alembic>=1.16,<2",
+  "apscheduler>=3.11,<4",
+  "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "playwright>=1.62,<2",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic-settings>=2.10,<3",
+  "sqlalchemy>=2.0.40,<3",
+  "uvicorn[standard]>=0.35,<1",
+  "xlsxwriter>=3.2,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.16,<2",
+  "pytest>=8.4,<10",
+  "pytest-cov>=6.2,<8",
+  "ruff>=0.12,<1",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+  "browser: requires the Playwright Chromium browser",
+  "postgresql: requires TEST_DATABASE_URL and a migrated PostgreSQL database",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["apscheduler.*"]
+ignore_missing_imports = true

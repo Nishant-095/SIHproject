@@ -1,0 +1,29 @@
+{
+  "data": {
+    "id": "orq_sanitized_optional",
+    "live_mode": false,
+    "offers": [
+      {
+        "id": "off_sanitized_optional",
+        "total_amount": "6100.00",
+        "total_currency": "INR",
+        "expires_at": null,
+        "slices": [
+          {
+            "segments": [
+              {
+                "origin": {"iata_code": "DEL"},
+                "destination": {"iata_code": "BLR"},
+                "departing_at": "2026-09-20T07:00:00",
+                "arriving_at": "2026-09-20T09:45:00",
+                "marketing_carrier": {"iata_code": "6E", "name": "IndiGo"},
+                "operating_carrier": {"iata_code": "6E", "name": "IndiGo"},
+                "marketing_carrier_flight_number": "6E2065"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

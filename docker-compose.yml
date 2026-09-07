@@ -1,0 +1,92 @@
+name: airfare-apix
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:?POSTGRES_DB is required}"
+      POSTGRES_USER: "${POSTGRES_USER:?POSTGRES_USER is required}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: development
+      DATABASE_URL: "postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+      COLLECTION_TIMEZONE: "${COLLECTION_TIMEZONE:-Asia/Kolkata}"
+      COLLECTION_HOUR: "${COLLECTION_HOUR:-10}"
+      COLLECTION_MINUTE: "${COLLECTION_MINUTE:-0}"
+      SCHEDULER_ENABLED: "${SCHEDULER_ENABLED:-false}"
+      SCHEDULED_SOURCE: "${SCHEDULED_SOURCE:-fixture}"
+      ADAPTER_TIMEOUT_SECONDS: "${ADAPTER_TIMEOUT_SECONDS:-30}"
+      ADAPTER_MAX_RETRIES: "${ADAPTER_MAX_RETRIES:-2}"
+      RETRY_BACKOFF_SECONDS: "${RETRY_BACKOFF_SECONDS:-0.5}"
+      RETRY_BACKOFF_MAX_SECONDS: "${RETRY_BACKOFF_MAX_SECONDS:-4}"
+      ENFORCE_SOURCE_RATE_LIMITS: "${ENFORCE_SOURCE_RATE_LIMITS:-true}"
+      DUFFEL_API_BASE_URL: "${DUFFEL_API_BASE_URL:-https://api.duffel.com}"
+      DUFFEL_ACCESS_TOKEN: "${DUFFEL_ACCESS_TOKEN:-}"
+      DUFFEL_LIVE_MODE: "${DUFFEL_LIVE_MODE:-false}"
+      DUFFEL_SOURCE_ENABLED: "${DUFFEL_SOURCE_ENABLED:-false}"
+      DUFFEL_SOURCE_APPROVED: "${DUFFEL_SOURCE_APPROVED:-false}"
+      DUFFEL_RATE_LIMIT_PER_MINUTE: "${DUFFEL_RATE_LIMIT_PER_MINUTE:-5}"
+      DUFFEL_SUPPLIER_TIMEOUT_MS: "${DUFFEL_SUPPLIER_TIMEOUT_MS:-20000}"
+      WEB_SOURCE_PROFILE_PATH: "${WEB_SOURCE_PROFILE_PATH:-}"
+      WEB_SOURCE_ENABLED: "${WEB_SOURCE_ENABLED:-false}"
+      WEB_SOURCE_APPROVED: "${WEB_SOURCE_APPROVED:-false}"
+      WEB_SOURCE_PERMISSION_REFERENCE: "${WEB_SOURCE_PERMISSION_REFERENCE:-}"
+      WEB_SOURCE_USER_AGENT: "${WEB_SOURCE_USER_AGENT:-AirfareAPIxResearchBot/0.1 (permissioned academic fare collection)}"
+      WEB_SOURCE_RATE_LIMIT_PER_MINUTE: "${WEB_SOURCE_RATE_LIMIT_PER_MINUTE:-2}"
+      WEB_SOURCE_BROWSER_TIMEOUT_MS: "${WEB_SOURCE_BROWSER_TIMEOUT_MS:-25000}"
+      CANONICAL_FARE_POLICY: "${CANONICAL_FARE_POLICY:-direct-then-median-v1}"
+      ADMIN_TOKEN: "${ADMIN_TOKEN:?ADMIN_TOKEN is required}"
+      CORS_ORIGINS: '["http://localhost:5173"]'
+    command: >-
+      sh -c "alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  frontend_node_modules:
